@@ -1,0 +1,6 @@
+name: CBanManagement
+main: vg.civcraft.mc.cbanman.CBanManagement
+version: 1.0.0
+author: suiradx
+depend: [CivModCore]
+softdepend: [Mercury, NameLayer]
