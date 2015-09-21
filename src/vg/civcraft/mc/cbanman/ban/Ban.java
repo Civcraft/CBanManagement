@@ -8,7 +8,7 @@ public class Ban {
 	
 	public Ban(BanLevel lv, String plugin, String msg){
 		if (lv == null)
-			lv = BanLevel.MEDIUM;
+			lv = BanLevel.LOW;
 		if (plugin == null){
 			plugin = "none";
 		} else if (plugin.isEmpty()){
