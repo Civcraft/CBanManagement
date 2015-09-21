@@ -17,6 +17,16 @@ public class CBanList {
 	}
 	
 	public void addBan(Ban ban){
+		Ban rem = null;
+		for (Ban oldban : banlist){
+			if (oldban.getPluginName().equals(ban.getPluginName())){
+				rem = oldban;
+				break;
+			}
+		}
+		if (rem != null){
+			banlist.remove(rem);
+		}
 		banlist.add(ban);
 	}
 	

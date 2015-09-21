@@ -10,8 +10,10 @@ import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
 import vg.civcraft.mc.cbanman.ban.CBanList;
 import vg.civcraft.mc.cbanman.database.SqlManager;
+import vg.civcraft.mc.cbanman.listeners.MercuryMessageListener;
 import vg.civcraft.mc.cbanman.listeners.PlayerListener;
 import vg.civcraft.mc.civmodcore.ACivMod;
+import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 
 public class CBanManagement extends ACivMod {
@@ -19,7 +21,9 @@ public class CBanManagement extends ACivMod {
 	private Map<UUID, CBanList> bannedPlayers;
 	private SqlManager sqlman;
 	private PlayerListener plyr;
+	private MercuryMessageListener mercury;
 	private boolean isNameLayerEnabled = false;
+	private boolean isMercuryEnabled = false;
 
 	@Override
 	public void onEnable() {
@@ -28,10 +32,16 @@ public class CBanManagement extends ACivMod {
 		bannedPlayers = new HashMap<UUID, CBanList>();
 		sqlman = new SqlManager(plugin);
 		isNameLayerEnabled = getServer().getPluginManager().isPluginEnabled("NameLayer");
+		isMercuryEnabled = getServer().getPluginManager().isPluginEnabled("Mercury");
 		if (sqlman.load() == false)
 			return;
 		plyr = new PlayerListener(plugin);
 		this.getServer().getPluginManager().registerEvents(plyr, plugin);
+		if (isMercuryEnabled){
+			mercury = new MercuryMessageListener(plugin);
+			this.getServer().getPluginManager().registerEvents(mercury, plugin);
+			MercuryAPI.instance.registerPluginMessageChannel("banman");
+		}
 	}
 
 	@Override
@@ -110,7 +120,6 @@ public class CBanManagement extends ACivMod {
 				}
 			}
 			if (previous != null){
-				banlist.removeBan(previous);
 				banlist.addBan(newban);
 				sqlman.updateBan(uuid, newban);
 			} else {
@@ -122,6 +131,11 @@ public class CBanManagement extends ACivMod {
 			banlist.addBan(newban);
 			bannedPlayers.put(uuid, banlist);
 			sqlman.banPlayer(uuid, newban);
+		}
+		if (isMercuryEnabled){
+			MercuryAPI.instance.sendMessage("all", 
+					"ban~"+uuid.toString()+"~"+newban.getBanLevel().value()+"~"+newban.getPluginName()+"~"+newban.getMessage(),
+					"banman");
 		}
 		for (Player p : plugin.getServer().getOnlinePlayers()){
 			if (p.getUniqueId().equals(uuid)){
@@ -202,6 +216,9 @@ public class CBanManagement extends ACivMod {
 				bannedPlayers.remove(uuid);
 			}
 			sqlman.unbanPlayer(uuid, pluginname);
+			if (isMercuryEnabled){
+				MercuryAPI.instance.sendMessage("all", "unban~"+uuid.toString()+"~"+pluginname, "banman");
+			}
 		}
 	}
 	
@@ -234,5 +251,8 @@ public class CBanManagement extends ACivMod {
 		if (!bannedPlayers.containsKey(uuid)){return;}
 		bannedPlayers.remove(uuid);
 		sqlman.unbanPlayerAll(uuid);
+		if (isMercuryEnabled){
+			MercuryAPI.instance.sendMessage("all", "unban~"+uuid.toString()+"~all", "banman");
+		}
 	}
 }

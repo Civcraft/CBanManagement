@@ -5,7 +5,7 @@
 	<groupId>vg.civcraft.mc</groupId>
 	<artifactId>CBanManagement</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<name>CBanManagement</name>
 	<url>https://github.com/Civcraft/CivHelp</url>
 
@@ -47,6 +47,12 @@
 			<version>[2.4.4,)</version>
 			<scope>provided</scope>
 		</dependency>
+		<dependency>
+			<groupId>vg.civcraft.mc.mercury</groupId>
+			<artifactId>Mercury</artifactId>
+			<version>[1.1.2,)</version>
+			<scope>provided</scope>
+		</dependency>
 	</dependencies>
 	<repositories>
 		<repository>
@@ -55,7 +61,7 @@
 		</repository>
 		<repository>
 			<id>Jenkins-repo</id>
-			<url>http://build.civcraft.com/plugin/repository/everything/</url>
+			<url>http://build.civcraft.co/plugin/repository/everything/</url>
 		</repository>
 	</repositories>
 </project>
