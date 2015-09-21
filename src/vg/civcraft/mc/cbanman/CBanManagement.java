@@ -8,13 +8,14 @@ import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
+import vg.civcraft.mc.cbanman.ban.CBanList;
 import vg.civcraft.mc.cbanman.database.SqlManager;
 import vg.civcraft.mc.cbanman.listeners.PlayerListener;
 import vg.civcraft.mc.civmodcore.ACivMod;
 
 public class CBanManagement extends ACivMod {
 	private static CBanManagement plugin;
-	private Map<UUID, Ban> bannedPlayers;
+	private Map<UUID, CBanList> bannedPlayers;
 	private SqlManager sqlman;
 	private PlayerListener plyr;
 
@@ -22,7 +23,7 @@ public class CBanManagement extends ACivMod {
 	public void onEnable() {
 		super.onEnable();
 		plugin = this;
-		bannedPlayers = new HashMap<UUID, Ban>();
+		bannedPlayers = new HashMap<UUID, CBanList>();
 		sqlman = new SqlManager(plugin);
 		if (sqlman.load() == false)
 			return;
@@ -35,7 +36,7 @@ public class CBanManagement extends ACivMod {
 		return "CBanManagement";
 	}
 	
-	public Map<UUID, Ban> getBannedPlayers(){
+	public Map<UUID, CBanList> getBannedPlayers(){
 		return bannedPlayers;
 	}
 	
@@ -54,14 +55,37 @@ public class CBanManagement extends ACivMod {
 		banPlayer(player.getUniqueId(), ban);
 	}
 	
-	public void banPlayer(UUID uuid, Ban ban){
-		if (uuid == null || ban == null){return;}
+	public void banPlayer(UUID uuid, Ban newban){
+		if (uuid == null || newban == null){return;}
 		if (isBanned(uuid)){
-			sqlman.updateBan(uuid, ban);
+			CBanList banlist = bannedPlayers.get(uuid);
+			Ban previous = null;
+			for (Ban ban : banlist.getBanList()){
+				if (ban.getPluginName().equals(newban.getPluginName())){
+					previous = ban;
+					break;
+				}
+			}
+			if (previous != null){
+				banlist.removeBan(previous);
+				banlist.addBan(newban);
+				sqlman.updateBan(uuid, newban);
+			} else {
+				banlist.addBan(newban);
+				sqlman.banPlayer(uuid, newban);
+			}
 		} else {
-			sqlman.banPlayer(uuid, ban);
+			CBanList banlist = new CBanList();
+			banlist.addBan(newban);
+			bannedPlayers.put(uuid, banlist);
+			sqlman.banPlayer(uuid, newban);
 		}
-		bannedPlayers.put(uuid, ban);
+		for (Player p : plugin.getServer().getOnlinePlayers()){
+			if (p.getUniqueId().equals(uuid)){
+				p.kickPlayer(newban.getMessage());
+				break;
+			}
+		}
 	}
 	
 	
@@ -76,16 +100,43 @@ public class CBanManagement extends ACivMod {
 		return bannedPlayers.containsKey(uuid);
 	}
 	
-	public void unbanPlayer(Player player){
-		if (player == null){return;}
-		unbanPlayer(player.getUniqueId());
+	public void unbanPlayer(Player player, String pluginname){
+		if (player == null || pluginname == null){return;}
+		if (pluginname.isEmpty()){return;}
+		unbanPlayer(player.getUniqueId(), pluginname);
 	}
 	
-	public void unbanPlayer(UUID uuid){
-		if (uuid == null){return;}
+	public void unbanPlayer(UUID uuid, String pluginname){
+		if (uuid == null || pluginname == null){return;}
+		if (pluginname.isEmpty()){return;}
 		if (!isBanned(uuid)){return;}
-		bannedPlayers.remove(uuid);
-		sqlman.unbanPlayer(uuid);
+		pluginname = pluginname.toLowerCase();
+		CBanList banlist = bannedPlayers.get(uuid);
+		Ban rem = null;
+		for (Ban ban : banlist.getBanList()){
+			if (ban.getPluginName().equals(pluginname)){
+				rem = ban;
+				break;
+			}
+		}
+		if (rem != null){
+			banlist.removeBan(rem);
+			if (banlist.getSize() == 0){
+				bannedPlayers.remove(uuid);
+			}
+			sqlman.unbanPlayer(uuid, pluginname);
+		}
 	}
 	
+	public void unbanPlayerAll(Player p){
+		if (p == null){return;}
+		unbanPlayerAll(p.getUniqueId());
+	}
+	
+	public void unbanPlayerAll(UUID uuid){
+		if (uuid == null){return;}
+		if (!bannedPlayers.containsKey(uuid)){return;}
+		bannedPlayers.remove(uuid);
+		sqlman.unbanPlayerAll(uuid);
+	}
 }

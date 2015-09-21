@@ -20,7 +20,7 @@ public class Ban {
 			msg = "You are banned from this server.";
 		}
 		this.level = lv;
-		this.pluginname = plugin;
+		this.pluginname = plugin.toLowerCase();
 		this.message = msg;
 	}
 	

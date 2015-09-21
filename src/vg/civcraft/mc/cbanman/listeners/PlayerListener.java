@@ -7,7 +7,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result;
-
 import vg.civcraft.mc.cbanman.CBanManagement;
 import vg.civcraft.mc.cbanman.ban.Ban;
 
@@ -24,8 +23,8 @@ public class PlayerListener implements Listener {
 		if (!plugin.isBanned(uuid)){
 			return;
 		}
-		Ban ban = plugin.getBannedPlayers().get(uuid);
+		Ban ban = plugin.getBannedPlayers().get(uuid).getHighestLevelBan();
 		event.disallow(Result.KICK_BANNED, ban.getMessage());
 	}
-	
+		
 }

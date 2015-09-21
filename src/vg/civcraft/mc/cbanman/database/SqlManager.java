@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import vg.civcraft.mc.cbanman.CBanManagement;
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
+import vg.civcraft.mc.cbanman.ban.CBanList;
 import vg.civcraft.mc.civmodcore.Config;
 import vg.civcraft.mc.civmodcore.annotations.CivConfig;
 import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
@@ -84,7 +85,14 @@ public class SqlManager {
 				String pluginname = set.getString("plugin_name");
 				String message = set.getString("message");
 				Ban ban = new Ban(banlevel, pluginname, message);
-				plugin.getBannedPlayers().put(uuid, ban);
+				CBanList banlist = plugin.getBannedPlayers().get(uuid);
+				if (banlist == null){
+					banlist = new CBanList();
+					banlist.addBan(ban);
+					plugin.getBannedPlayers().put(uuid, banlist);
+				} else {
+					banlist.addBan(ban);
+				}
 			}
 			plugin.getLogger().info("Loaded from database!");
 			return true;
@@ -97,13 +105,12 @@ public class SqlManager {
 	
 	
 	public void updateBan(UUID uuid, Ban ban){
-		//update ban_list set ban_flag=1 where uuid='84392ff1-d79c-3d37-ab33-e81ab884fdb3'
-		//"update ban_list set "
 		PreparedStatement updateBan = db.prepareStatement(updateData
-				+ "ban_flag='"+ban.getBanLevel().toByte()+"',"
+				+ "ban_flag='"+ban.getBanLevel().value()+"',"
 				+ "plugin_name='"+ban.getPluginName()+"',"
 				+ "message='"+ban.getMessage()+"' "
-				+ "where uuid='"+uuid.toString()+"'");
+				+ "where uuid='"+uuid.toString()+"' AND "
+				+ "plugin_name='"+ban.getPluginName()+"'");
 		try {
 			updateBan.execute();
 		} catch (SQLException e) {
@@ -116,7 +123,7 @@ public class SqlManager {
 		PreparedStatement banPlayer = db.prepareStatement(insertData);
 		try {
 			banPlayer.setString(1, uuid.toString());
-			banPlayer.setByte(2, ban.getBanLevel().toByte());
+			banPlayer.setByte(2, ban.getBanLevel().value());
 			banPlayer.setString(3, ban.getPluginName());
 			banPlayer.setString(4, ban.getMessage());
 			banPlayer.execute();
@@ -126,8 +133,21 @@ public class SqlManager {
 		}
 	}
 	
-	public void unbanPlayer(UUID uuid){
-		PreparedStatement unbanPlayer = db.prepareStatement(removeData+"'"+uuid.toString()+"'");
+	public void unbanPlayer(UUID uuid, String pluginname){
+		PreparedStatement unbanPlayer = db.prepareStatement(removeData+
+				"'"+uuid.toString()+"' AND "
+				+ "plugin_name='"+pluginname+"';");
+		try {
+			unbanPlayer.execute();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public void unbanPlayerAll(UUID uuid) {
+		PreparedStatement unbanPlayer = db.prepareStatement(removeData+
+				"'"+uuid.toString()+"';");
 		try {
 			unbanPlayer.execute();
 		} catch (SQLException e) {

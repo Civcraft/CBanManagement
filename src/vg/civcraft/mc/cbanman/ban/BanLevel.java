@@ -1,10 +1,10 @@
 package vg.civcraft.mc.cbanman.ban;
 
 public enum BanLevel {
-	HIGH (1),
+	HIGH (3),
 	MEDIUM (2),
-	LOW (3),
-	TEMP (4),
+	LOW (1),
+	TEMP (0),
 	;
 	private final byte level;
 
@@ -16,23 +16,23 @@ public enum BanLevel {
     	return (int)this.level;
     }
     
-    public byte toByte(){
+    public byte value(){
     	return this.level;
     }
     
     public BanLevel fromByte(Byte lv){
     	BanLevel level = null;
     	switch (lv){
-    		case 1:
+    		case 3:
     			level = BanLevel.HIGH;
     			break;
     		case 2:
     			level = BanLevel.MEDIUM;
     			break;
-    		case 3:
+    		case 1:
     			level = BanLevel.LOW;
     			break;
-    		case 4:
+    		case 0:
     			level = BanLevel.TEMP;
     			break;
     	}
