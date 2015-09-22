@@ -55,7 +55,7 @@ public class MercuryMessageListener implements Listener{
 			} else {
 				if (list != null){
 					Ban rem = null;
-					for (Ban ban : list.getBanList()){
+					for (Ban ban : list.getList()){
 						if (ban.getPluginName().equals(pluginname)){
 							rem = ban;
 							break;

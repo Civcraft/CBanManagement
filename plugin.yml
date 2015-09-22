@@ -1,6 +1,25 @@
 name: CBanManagement
 main: vg.civcraft.mc.cbanman.CBanManagement
-version: 1.1.0
+version: 1.2.0
 author: suiradx
 depend: [CivModCore]
 softdepend: [Mercury, NameLayer]
+commands:
+  ban:
+    description: Ban a player or list of players with an admin ban.
+    permission: CBanMan.*
+    usage: /ban <name> <name> <name>..
+  unban:
+    description: Clears all bans off of a player or list of players.
+    aliases: [uban, pardon]
+    permission: CBanMan.*
+    usage: /unban <name> <name> <name>..
+  checkban:
+    description: Checks and returns all bans for a player.
+    aliases: [cban, chkban]
+    permission: CBanMan.*
+    usage: /checkban <name>
+permissions:
+    CBanMan.*:
+      description: Gives full access to ban management.
+      default: op

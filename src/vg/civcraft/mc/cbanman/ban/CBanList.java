@@ -12,7 +12,7 @@ public class CBanList {
 		banlist = new ArrayList<Ban>();
 	}
 	
-	public List<Ban> getBanList(){
+	public List<Ban> getList(){
 		return banlist;
 	}
 	

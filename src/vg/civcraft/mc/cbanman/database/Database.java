@@ -58,7 +58,7 @@ public class Database {
 			return true;
 		} catch (SQLException ex) { // Error handling below:
 			this.logger.log(Level.SEVERE,
-					"Could not connnect to the database!", ex);
+					"Could not connnect to the database!");
 			return false;
 		}
 	}

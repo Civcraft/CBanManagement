@@ -4,6 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.bukkit.BanEntry;
+import org.bukkit.BanList;
+import org.bukkit.BanList.Type;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import vg.civcraft.mc.cbanman.ban.Ban;
@@ -12,7 +16,10 @@ import vg.civcraft.mc.cbanman.ban.CBanList;
 import vg.civcraft.mc.cbanman.database.SqlManager;
 import vg.civcraft.mc.cbanman.listeners.MercuryMessageListener;
 import vg.civcraft.mc.cbanman.listeners.PlayerListener;
+import vg.civcraft.mc.cbanman.handler.CommandHandler;
 import vg.civcraft.mc.civmodcore.ACivMod;
+import vg.civcraft.mc.civmodcore.annotations.CivConfig;
+import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
 import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 
@@ -21,6 +28,7 @@ public class CBanManagement extends ACivMod {
 	private Map<UUID, CBanList> bannedPlayers;
 	private SqlManager sqlman;
 	private PlayerListener plyr;
+	private CommandHandler cmdHandler;
 	private MercuryMessageListener mercury;
 	private boolean isNameLayerEnabled = false;
 	private boolean isMercuryEnabled = false;
@@ -37,11 +45,39 @@ public class CBanManagement extends ACivMod {
 			return;
 		plyr = new PlayerListener(plugin);
 		this.getServer().getPluginManager().registerEvents(plyr, plugin);
+		cmdHandler = new CommandHandler(this, isNameLayerEnabled);
+		for (String command : getDescription().getCommands().keySet()) {
+			getCommand(command).setExecutor(cmdHandler);
+		}
 		if (isMercuryEnabled){
 			mercury = new MercuryMessageListener(plugin);
 			this.getServer().getPluginManager().registerEvents(mercury, plugin);
 			MercuryAPI.instance.registerPluginMessageChannel("banman");
 		}
+		importBans();
+	}
+	
+	@CivConfig(name = "import_native_bans", def = "false", type = CivConfigType.Bool)
+	private void importBans() {
+		if (!plugin.GetConfig().get("import_native_bans").getBool()){return;}
+		
+		BanList banned = this.getServer().getBanList(Type.NAME);
+		if (banned.getBanEntries().size() == 0){return;}
+		plugin.getLogger().info("Importing "+banned.getBanEntries().size()+" native ban(s)...");
+		int counter = 0;
+		Ban newban = new Ban(
+				BanLevel.HIGH.fromInt(plugin.GetConfig().get("adminban.banlevel").getInt()),
+				plugin.GetConfig().get("adminban.pluginname").getString(),
+				plugin.GetConfig().get("adminban.banmessage").getString()				
+				);
+		for (BanEntry ban : banned.getBanEntries()){
+			if (banPlayer(ban.getTarget(),newban)){
+				banned.pardon(ban.getTarget());
+				counter++;
+			}
+
+		}
+		plugin.getLogger().info("Imported "+counter+" Native Ban(s)!");
 	}
 
 	@Override
@@ -65,7 +101,9 @@ public class CBanManagement extends ACivMod {
 		if (isNameLayerEnabled){
 			uuid = NameAPI.getUUID(name);
 		} else {
-			uuid = plugin.getServer().getOfflinePlayer(name).getUniqueId();
+			OfflinePlayer p = plugin.getServer().getOfflinePlayer(name);
+			if (p != null)
+				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
 			return false;
@@ -93,7 +131,9 @@ public class CBanManagement extends ACivMod {
 		if (isNameLayerEnabled){
 			uuid = NameAPI.getUUID(name);
 		} else {
-			uuid = plugin.getServer().getOfflinePlayer(name).getUniqueId();
+			OfflinePlayer p = plugin.getServer().getOfflinePlayer(name);
+			if (p != null)
+				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
 			return false;
@@ -113,7 +153,7 @@ public class CBanManagement extends ACivMod {
 		if (isBanned(uuid)){
 			CBanList banlist = bannedPlayers.get(uuid);
 			Ban previous = null;
-			for (Ban ban : banlist.getBanList()){
+			for (Ban ban : banlist.getList()){
 				if (ban.getPluginName().equals(newban.getPluginName())){
 					previous = ban;
 					break;
@@ -154,7 +194,9 @@ public class CBanManagement extends ACivMod {
 		if (isNameLayerEnabled){
 			uuid = NameAPI.getUUID(name);
 		} else {
-			uuid = plugin.getServer().getOfflinePlayer(name).getUniqueId();
+			OfflinePlayer p = plugin.getServer().getOfflinePlayer(name);
+			if (p != null)
+				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
 			return false;
@@ -181,7 +223,9 @@ public class CBanManagement extends ACivMod {
 		if (isNameLayerEnabled){
 			uuid = NameAPI.getUUID(name);
 		} else {
-			uuid = plugin.getServer().getOfflinePlayer(name).getUniqueId();
+			OfflinePlayer p = plugin.getServer().getOfflinePlayer(name);
+			if (p != null)
+				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
 			return false;
@@ -204,7 +248,7 @@ public class CBanManagement extends ACivMod {
 		pluginname = pluginname.toLowerCase();
 		CBanList banlist = bannedPlayers.get(uuid);
 		Ban rem = null;
-		for (Ban ban : banlist.getBanList()){
+		for (Ban ban : banlist.getList()){
 			if (ban.getPluginName().equals(pluginname)){
 				rem = ban;
 				break;
@@ -230,7 +274,9 @@ public class CBanManagement extends ACivMod {
 		if (isNameLayerEnabled){
 			uuid = NameAPI.getUUID(name);
 		} else {
-			uuid = plugin.getServer().getOfflinePlayer(name).getUniqueId();
+			OfflinePlayer p = plugin.getServer().getOfflinePlayer(name);
+			if (p != null)
+				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
 			return false;

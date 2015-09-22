@@ -54,7 +54,7 @@ public class SqlManager {
 		int port = config.get("mysql.port").getInt();
 		db = new Database(host, port, dbname, username, password, plugin.getLogger());
 		if (!db.connect()) {
-			plugin.getLogger().warning("Mysql could not connect, shutting down.");
+			plugin.getLogger().warning("MySql could not connect, shutting down.");
 			Bukkit.getPluginManager().disablePlugin(plugin);
 			return false;
 		}
