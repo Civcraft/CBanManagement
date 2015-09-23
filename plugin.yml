@@ -18,7 +18,7 @@ commands:
     description: Checks and returns all bans for a player.
     aliases: [cban, chkban]
     permission: CBanMan.*
-    usage: /checkban <name>
+    usage: /checkban <name> [ban#]
   banrecache:
     description: Reloads ban cache from the database.
     permission: CBanMan.*
