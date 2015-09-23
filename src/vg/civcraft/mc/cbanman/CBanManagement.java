@@ -37,11 +37,10 @@ public class CBanManagement extends ACivMod {
 	public void onEnable() {
 		super.onEnable();
 		plugin = this;
-		bannedPlayers = new HashMap<UUID, CBanList>();
 		sqlman = new SqlManager(plugin);
 		isNameLayerEnabled = getServer().getPluginManager().isPluginEnabled("NameLayer");
 		isMercuryEnabled = getServer().getPluginManager().isPluginEnabled("Mercury");
-		if (sqlman.load() == false)
+		if (reload() == false)
 			return;
 		plyr = new PlayerListener(plugin);
 		this.getServer().getPluginManager().registerEvents(plyr, plugin);
@@ -83,6 +82,11 @@ public class CBanManagement extends ACivMod {
 	@Override
 	protected String getPluginName() {
 		return "CBanManagement";
+	}
+	
+	public boolean reload(){
+		bannedPlayers = new HashMap<UUID, CBanList>();
+		return sqlman.load();
 	}
 	
 	public Map<UUID, CBanList> getBannedPlayers(){

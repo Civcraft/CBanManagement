@@ -19,6 +19,10 @@ commands:
     aliases: [cban, chkban]
     permission: CBanMan.*
     usage: /checkban <name>
+  banrecache:
+    description: Reloads ban cache from the database.
+    permission: CBanMan.*
+    usage: /banrecache
 permissions:
     CBanMan.*:
       description: Gives full access to ban management.

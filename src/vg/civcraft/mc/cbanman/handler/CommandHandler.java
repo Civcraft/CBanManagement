@@ -10,6 +10,7 @@ import org.bukkit.command.CommandSender;
 import vg.civcraft.mc.cbanman.CBanManagement;
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
+import vg.civcraft.mc.cbanman.ban.CBanList;
 import vg.civcraft.mc.civmodcore.annotations.CivConfig;
 import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
 import vg.civcraft.mc.civmodcore.annotations.CivConfigs;
@@ -38,13 +39,25 @@ public class CommandHandler implements CommandExecutor {
 			case "checkban":
 			case "chkban":
 			case "cban":
-				return handleCkban(sender, args);
+				return handleCheckban(sender, args);
+			case "banrecache":
+				return handleRecache(sender, args);
 		}
 		return false;
 	}
 
-	private boolean handleCkban(CommandSender sender, String[] args) {
-		if (args.length != 1){ return false;}
+	private boolean handleRecache(CommandSender sender, String[] args) {
+		if (args.length != 0){return false;}
+		if (plugin.reload()){
+			sender.sendMessage("Bans Reloaded from DB!");
+		} else{
+			sender.sendMessage("Failed to reload bans from DB :(.");
+		}
+		return true;
+	}
+
+	private boolean handleCheckban(CommandSender sender, String[] args) {
+		if (args.length < 1 || args.length > 2){ return false;}
 		UUID uuid = null;
 		if (isNameLayer){
 			uuid = NameAPI.getUUID(args[0]);
@@ -57,11 +70,28 @@ public class CommandHandler implements CommandExecutor {
 		
 		if (uuid != null){
 			if (plugin.isBanned(uuid)){
+				int selected = -1, count = 0;
+				if (args.length == 2){
+					try{
+						selected = Integer.valueOf(args[1].substring(0, 1));
+					} catch (NumberFormatException e){
+						selected = -1;
+					}
+				}
 				sender.sendMessage("----------------------------");
 				sender.sendMessage("'"+args[0]+"' is banned:");
-				for (Ban ban : plugin.getBannedPlayers().get(uuid).getList()){
+				CBanList banlist = plugin.getBannedPlayers().get(uuid);
+				if (selected != -1  && selected > banlist.getSize()){selected = -1;}
+				for (Ban ban : banlist.getList()){
+					count++;
+					if (selected != -1){
+						if (count != selected){continue;}
+						sender.sendMessage("Lv:"+ban.getBanLevel().toString()+" | Plugin: "+ban.getPluginName());
+						sender.sendMessage(ban.getMessage());
+						break;
+					}
 					sender.sendMessage(
-							"Lv:"+ban.getBanLevel().toString()+" | Plugin: "+ban.getPluginName()
+							"<"+count+"> Lv:"+ban.getBanLevel().toString()+" | Plugin: "+ban.getPluginName()
 							);
 				}
 				sender.sendMessage("----------------------------");
