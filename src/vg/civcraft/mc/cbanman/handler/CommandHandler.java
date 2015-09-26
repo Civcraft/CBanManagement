@@ -58,7 +58,7 @@ public class CommandHandler implements CommandExecutor {
 
 	private boolean handleCheckban(CommandSender sender, String[] args) {
 		if (args.length < 1 || args.length > 2){ return false;}
-		UUID uuid = null;
+		UUID uuid = null, uuid2;
 		if (isNameLayer){
 			uuid = NameAPI.getUUID(args[0]);
 		} else{
@@ -66,6 +66,10 @@ public class CommandHandler implements CommandExecutor {
 			OfflinePlayer p = plugin.getServer().getOfflinePlayer(args[0]);
 			if (p != null)
 				uuid = p.getUniqueId();
+		}
+		
+		if (uuid == null && plugin.isBanned(uuid2 = UUID.nameUUIDFromBytes(args[0].toLowerCase().getBytes()))){
+			uuid = uuid2;
 		}
 		
 		if (uuid != null){

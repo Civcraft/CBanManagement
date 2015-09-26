@@ -29,8 +29,12 @@ public class PlayerListener implements Listener {
 	
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onConnect(AsyncPlayerPreLoginEvent event){
-		UUID uuid = event.getUniqueId();
-		if (!plugin.isBanned(uuid)){
+		UUID uuid = event.getUniqueId(), uuid2;
+		if (plugin.isBanned(uuid)){
+			
+		} else if (plugin.isBanned(uuid2 = UUID.nameUUIDFromBytes(event.getName().toLowerCase().getBytes()))) {
+			uuid = uuid2;
+		} else {
 			return;
 		}
 		Ban ban = plugin.getBannedPlayers().get(uuid).getHighestLevelBan();

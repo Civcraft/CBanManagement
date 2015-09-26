@@ -70,7 +70,7 @@ public class CBanManagement extends ACivMod {
 				plugin.GetConfig().get("adminban.banmessage").getString()				
 				);
 		for (BanEntry ban : banned.getBanEntries()){
-			if (banPlayer(ban.getTarget(),newban)){
+			if (banPlayer(ban.getTarget().toLowerCase(),newban)){
 				banned.pardon(ban.getTarget());
 				counter++;
 			}
@@ -110,11 +110,11 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			return false;
+			banPlayer(UUID.fromString(name.toLowerCase()),banlevel, pluginname, message);
 		} else {
 			banPlayer(uuid, banlevel, pluginname, message);
-			return true;
 		}
+		return true;
 	}
 	
 	public void banPlayer(Player player, BanLevel banlevel, String pluginname, String message){
@@ -140,11 +140,11 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			return false;
+			banPlayer(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()), ban);
 		} else {
 			banPlayer(uuid, ban);
-			return true;
 		}
+		return true;
 	}
 	
 	public void banPlayer(Player player, Ban ban){
@@ -203,7 +203,7 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			return false;
+			return isBanned(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()));
 		} else {
 			return isBanned(uuid);
 		}
@@ -232,11 +232,11 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			return false;
+			unbanPlayer(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()),pluginname);
 		} else {
 			unbanPlayer(uuid, pluginname);
-			return true;
 		}
+		return true;
 	}
 	
 	public void unbanPlayer(Player player, String pluginname){
@@ -283,11 +283,12 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			return false;
+			unbanPlayerAll(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()));
 		} else {
 			unbanPlayerAll(uuid);
-			return true;
+			unbanPlayerAll(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()));
 		}
+		return true;
 	}
 
 	
