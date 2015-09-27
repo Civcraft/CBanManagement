@@ -16,10 +16,12 @@ import vg.civcraft.mc.cbanman.ban.CBanList;
 import vg.civcraft.mc.cbanman.database.SqlManager;
 import vg.civcraft.mc.cbanman.listeners.MercuryMessageListener;
 import vg.civcraft.mc.cbanman.listeners.PlayerListener;
+import vg.civcraft.mc.cbanman.listeners.TempBanListener;
 import vg.civcraft.mc.cbanman.handler.CommandHandler;
 import vg.civcraft.mc.civmodcore.ACivMod;
 import vg.civcraft.mc.civmodcore.annotations.CivConfig;
 import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
+import vg.civcraft.mc.civmodcore.annotations.CivConfigs;
 import vg.civcraft.mc.mercury.MercuryAPI;
 import vg.civcraft.mc.namelayer.NameAPI;
 
@@ -30,6 +32,7 @@ public class CBanManagement extends ACivMod {
 	private PlayerListener plyr;
 	private CommandHandler cmdHandler;
 	private MercuryMessageListener mercury;
+	private TempBanListener tempListener;
 	private boolean isNameLayerEnabled = false;
 	private boolean isMercuryEnabled = false;
 
@@ -54,9 +57,19 @@ public class CBanManagement extends ACivMod {
 			MercuryAPI.instance.registerPluginMessageChannel("banman");
 		}
 		importBans();
+		if (plugin.GetConfig().get("tempbans.scan_enabled").getBool()){
+			tempListener = new TempBanListener(plugin);
+			plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, tempListener
+					, 0L, 20L*60*plugin.GetConfig().get("tempbans.minutes_between_scan").getInt());
+			plugin.getLogger().info("Scheduled temp ban scan");
+		}
 	}
 	
-	@CivConfig(name = "import_native_bans", def = "false", type = CivConfigType.Bool)
+	@CivConfigs({
+		@CivConfig(name = "tempbans.scan_enabled", def = "false", type = CivConfigType.Bool),
+		@CivConfig(name = "tempbans.minutes_between_scan", def= "1", type = CivConfigType.Int),
+		@CivConfig(name = "import_native_bans", def = "false", type = CivConfigType.Bool)
+	})
 	private void importBans() {
 		if (!plugin.GetConfig().get("import_native_bans").getBool()){return;}
 		
@@ -93,39 +106,6 @@ public class CBanManagement extends ACivMod {
 		return bannedPlayers;
 	}
 	
-	public boolean banPlayer(String name, byte banlevel, String pluginname, String message){
-		return banPlayer(name, BanLevel.HIGH.fromByte(banlevel), pluginname, message);
-	}
-	
-	@SuppressWarnings("deprecation")
-	public boolean banPlayer(String name, BanLevel banlevel, String pluginname, String message){
-		if (name == null || banlevel == null){return false;}
-		if (name.isEmpty()){return false;}
-		UUID uuid = null;
-		if (isNameLayerEnabled){
-			uuid = NameAPI.getUUID(name);
-		} else {
-			OfflinePlayer p = plugin.getServer().getOfflinePlayer(name);
-			if (p != null)
-				uuid = p.getUniqueId();
-		}
-		if (uuid == null){
-			banPlayer(UUID.fromString(name.toLowerCase()),banlevel, pluginname, message);
-		} else {
-			banPlayer(uuid, banlevel, pluginname, message);
-		}
-		return true;
-	}
-	
-	public void banPlayer(Player player, BanLevel banlevel, String pluginname, String message){
-		if (player == null){return;}
-		banPlayer(player.getUniqueId(), banlevel, pluginname, message);
-	}
-	
-	public void banPlayer(UUID uuid, BanLevel banlevel, String pluginname, String message){
-		Ban ban = new Ban(banlevel, pluginname, message);
-		banPlayer(uuid, ban);
-	}
 	
 	@SuppressWarnings("deprecation")
 	public boolean banPlayer(String name, Ban ban){
@@ -235,6 +215,7 @@ public class CBanManagement extends ACivMod {
 			unbanPlayer(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()),pluginname);
 		} else {
 			unbanPlayer(uuid, pluginname);
+			unbanPlayer(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()),pluginname);
 		}
 		return true;
 	}

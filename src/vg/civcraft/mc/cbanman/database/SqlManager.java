@@ -3,6 +3,11 @@ package vg.civcraft.mc.cbanman.database;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -33,7 +38,7 @@ public class SqlManager {
 	}
 	
 	private void initializeStrings() {
-		insertData = "insert into ban_list(uuid, ban_flag, plugin_name, message) values (?,?,?,?);";
+		insertData = "insert into ban_list(uuid, ban_flag, plugin_name, message, expires) values (?,?,?,?,?);";
 		removeData = "delete from ban_list where uuid=";
 		updateData = "update ban_list set ";
 		getAllData = "select * from ban_list;";
@@ -68,6 +73,7 @@ public class SqlManager {
 				+ "ban_flag tinyint not null,"
 				+ "plugin_name varchar(255) not null,"
 				+ "message varchar(255) not null,"
+				+ "expires datetime,"
 				+ "primary key (uuid, ban_flag, plugin_name, message));");
 	}
 
@@ -84,7 +90,19 @@ public class SqlManager {
 				BanLevel banlevel = BanLevel.HIGH.fromByte(set.getByte("ban_flag"));
 				String pluginname = set.getString("plugin_name");
 				String message = set.getString("message");
-				Ban ban = new Ban(banlevel, pluginname, message);
+				String date = set.getString("expires");
+				Date expiry = null;
+				if (date != null){
+					if (!date.isEmpty()){
+						DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+						try {
+							expiry = dateFormat.parse(date);
+						} catch (ParseException e){
+							;
+						}
+					}
+				}
+				Ban ban = new Ban(banlevel, pluginname, message, expiry);
 				CBanList banlist = plugin.getBannedPlayers().get(uuid);
 				if (banlist == null){
 					banlist = new CBanList();
@@ -105,12 +123,19 @@ public class SqlManager {
 	
 	
 	public void updateBan(UUID uuid, Ban ban){
-		PreparedStatement updateBan = db.prepareStatement(updateData
-				+ "ban_flag='"+ban.getBanLevel().value()+"',"
-				+ "plugin_name='"+ban.getPluginName()+"',"
-				+ "message='"+ban.getMessage()+"' "
-				+ "where uuid='"+uuid.toString()+"' AND "
-				+ "plugin_name='"+ban.getPluginName()+"'");
+		String statement = null;
+		statement = updateData
+			+ "ban_flag='"+ban.getBanLevel().value()+"',"
+			+ "plugin_name='"+ban.getPluginName()+"',"
+			+ "message='"+ban.getMessage()+"'";
+		String expiry = ban.getExpiration();
+		if (expiry != null){
+			statement+=",expires='"+expiry+"' ";
+		} else {
+			statement+=",expires=null ";
+		}
+		statement+="where uuid='"+uuid.toString()+"' AND plugin_name='"+ban.getPluginName()+"'";
+		PreparedStatement updateBan = db.prepareStatement(statement);
 		try {
 			updateBan.execute();
 		} catch (SQLException e) {
@@ -126,6 +151,12 @@ public class SqlManager {
 			banPlayer.setByte(2, ban.getBanLevel().value());
 			banPlayer.setString(3, ban.getPluginName());
 			banPlayer.setString(4, ban.getMessage());
+			String expiry = ban.getExpiration();
+			if (expiry != null){
+				banPlayer.setString(5, expiry);
+			} else {
+				banPlayer.setNull(5, Types.NULL);
+			}
 			banPlayer.execute();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
