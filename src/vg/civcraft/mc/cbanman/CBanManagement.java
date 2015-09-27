@@ -1,5 +1,6 @@
 package vg.civcraft.mc.cbanman;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -10,6 +11,7 @@ import org.bukkit.BanList.Type;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
+import vg.civcraft.mc.cbanman.ban.AsyncBan;
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
 import vg.civcraft.mc.cbanman.ban.CBanList;
@@ -77,6 +79,7 @@ public class CBanManagement extends ACivMod {
 		if (banned.getBanEntries().size() == 0){return;}
 		plugin.getLogger().info("Importing "+banned.getBanEntries().size()+" native ban(s)...");
 		int counter = 0;
+		ArrayList<String> async = new ArrayList<String>();
 		Ban newban = new Ban(
 				BanLevel.HIGH.fromInt(plugin.GetConfig().get("adminban.banlevel").getInt()),
 				plugin.GetConfig().get("adminban.pluginname").getString(),
@@ -86,10 +89,17 @@ public class CBanManagement extends ACivMod {
 			if (banPlayer(ban.getTarget().toLowerCase(),newban)){
 				banned.pardon(ban.getTarget());
 				counter++;
+			} else {
+				async.add(ban.getTarget().toLowerCase());
 			}
 
 		}
-		plugin.getLogger().info("Imported "+counter+" Native Ban(s)!");
+		plugin.getLogger().info("Imported "+counter+" native Ban(s)!");
+		if (!async.isEmpty()){
+			plugin.getLogger().info("Attempting to AsyncBan "+async.size()+" native bans...");
+			AsyncBan aban = new AsyncBan(plugin, async, newban, plugin.getServer().getConsoleSender());
+			plugin.getServer().getScheduler().runTaskAsynchronously(plugin, aban);
+		}
 	}
 
 	@Override
@@ -120,7 +130,7 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			banPlayer(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()), ban);
+			return false;
 		} else {
 			banPlayer(uuid, ban);
 		}
@@ -183,7 +193,7 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			return isBanned(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()));
+			return false;
 		} else {
 			return isBanned(uuid);
 		}
@@ -212,10 +222,9 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			unbanPlayer(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()),pluginname);
+			return false;
 		} else {
 			unbanPlayer(uuid, pluginname);
-			unbanPlayer(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()),pluginname);
 		}
 		return true;
 	}
@@ -264,10 +273,9 @@ public class CBanManagement extends ACivMod {
 				uuid = p.getUniqueId();
 		}
 		if (uuid == null){
-			unbanPlayerAll(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()));
+			return false;
 		} else {
 			unbanPlayerAll(uuid);
-			unbanPlayerAll(UUID.nameUUIDFromBytes(name.toLowerCase().getBytes()));
 		}
 		return true;
 	}

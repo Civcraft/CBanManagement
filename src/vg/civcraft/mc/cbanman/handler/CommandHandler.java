@@ -1,5 +1,6 @@
 package vg.civcraft.mc.cbanman.handler;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import org.bukkit.OfflinePlayer;
@@ -8,6 +9,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
 import vg.civcraft.mc.cbanman.CBanManagement;
+import vg.civcraft.mc.cbanman.ban.AsyncBan;
+import vg.civcraft.mc.cbanman.ban.AsyncUnban;
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
 import vg.civcraft.mc.cbanman.ban.CBanList;
@@ -58,7 +61,7 @@ public class CommandHandler implements CommandExecutor {
 
 	private boolean handleCheckban(CommandSender sender, String[] args) {
 		if (args.length < 1 || args.length > 2){ return false;}
-		UUID uuid = null, uuid2;
+		UUID uuid = null;
 		if (isNameLayer){
 			uuid = NameAPI.getUUID(args[0]);
 		} else{
@@ -66,10 +69,6 @@ public class CommandHandler implements CommandExecutor {
 			OfflinePlayer p = plugin.getServer().getOfflinePlayer(args[0]);
 			if (p != null)
 				uuid = p.getUniqueId();
-		}
-		
-		if (uuid == null && plugin.isBanned(uuid2 = UUID.nameUUIDFromBytes(args[0].toLowerCase().getBytes()))){
-			uuid = uuid2;
 		}
 		
 		if (uuid != null){
@@ -111,14 +110,18 @@ public class CommandHandler implements CommandExecutor {
 
 	private boolean handleUnban(CommandSender sender, String[] args) {
 		if (args.length == 0){return false;}
-		
+		ArrayList<String> namelist = new ArrayList<String>();
 		for (String name : args){
 			if (plugin.unbanPlayerAll(name)){
 				sender.sendMessage("Unbanned: "+name);
 			} else {
-				sender.sendMessage("Unable to unban: "+name);
+				sender.sendMessage("Attempting to AsyncUnban: "+name);
+				namelist.add(name);
 			}
-
+		}
+		if (!namelist.isEmpty()){
+			AsyncUnban aban = new AsyncUnban(plugin, namelist, sender);
+			plugin.getServer().getScheduler().runTaskAsynchronously(plugin, aban);
 		}
 		return true;
 	}
@@ -136,12 +139,18 @@ public class CommandHandler implements CommandExecutor {
 				plugin.GetConfig().get("adminban.pluginname").getString(),
 				plugin.GetConfig().get("adminban.banmessage").getString()				
 				);
+		ArrayList<String> namelist = new ArrayList<String>();
 		for (String name : args){
 			if (plugin.banPlayer(name, ban)){
 				sender.sendMessage("Banned: "+name);
 			} else {
-				sender.sendMessage("Unable to ban: "+name);
+				sender.sendMessage("Attempting AsyncBan for: "+name);
+				namelist.add(name);
 			}
+		}
+		if (!namelist.isEmpty()){
+			AsyncBan aban = new AsyncBan(plugin, namelist, ban, sender);
+			plugin.getServer().getScheduler().runTaskAsynchronously(plugin, aban);
 		}
 		
 		return true;
