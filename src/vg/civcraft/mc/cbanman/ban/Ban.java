@@ -16,12 +16,12 @@ public class Ban {
 			lv = BanLevel.LOW;
 		if (plugin == null){
 			plugin = "none";
-		} else if (plugin.isEmpty()){
+		} else if (plugin.trim().isEmpty()){
 			plugin = "none";
 		}
 		if (msg == null){
 			msg = "You are banned from this server.";
-		} else if (msg.isEmpty()){
+		} else if (msg.trim().isEmpty()){
 			msg = "You are banned from this server.";
 		}
 		this.level = lv;
@@ -62,7 +62,7 @@ public class Ban {
 		return this.message;
 	}
 	
-	public String getExpiration(){
+	public String getExpiryString(){
 		if (expiry != null){
 			DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			return dateFormat.format(expiry);
@@ -71,7 +71,6 @@ public class Ban {
 		}
 	}
 	
-	@SuppressWarnings("deprecation")
 	public boolean isExpired(){
 		if (expiry == null){return false;}
 		Date now = new Date();
@@ -81,17 +80,13 @@ public class Ban {
 		} else if (compare > 0 ){
 			return false;
 		} else{
-			if (expiry.getHours() < now.getHours()){
-				return false;
-			} else if (expiry.getHours() > now.getHours()){
-				return true;
-			} else if (expiry.getMinutes() < now.getMinutes()){
-				return false;
-			} else if (expiry.getHours() >= now.getMinutes()){
-				return true;
-			}
+			return false;
 		}
-		return false;
+	}
+	
+	public boolean isPluginName(String name){
+		if (name == null){return false;}
+		return this.pluginname.equalsIgnoreCase(name);
 	}
 
 }

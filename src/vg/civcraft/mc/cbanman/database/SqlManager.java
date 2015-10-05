@@ -81,6 +81,7 @@ public class SqlManager {
 		plugin.getLogger().info("Connecting to database...");
 		if (loadDB() == false)
 			return false;
+		if (!db.isConnected()){db.connect();}
 		PreparedStatement playerData = db.prepareStatement(getAllData);
 		ResultSet set;
 		try {
@@ -128,13 +129,14 @@ public class SqlManager {
 			+ "ban_flag='"+ban.getBanLevel().value()+"',"
 			+ "plugin_name='"+ban.getPluginName()+"',"
 			+ "message='"+ban.getMessage()+"'";
-		String expiry = ban.getExpiration();
+		String expiry = ban.getExpiryString();
 		if (expiry != null){
 			statement+=",expires='"+expiry+"' ";
 		} else {
 			statement+=",expires=null ";
 		}
 		statement+="where uuid='"+uuid.toString()+"' AND plugin_name='"+ban.getPluginName()+"'";
+		if (!db.isConnected()){db.connect();}
 		PreparedStatement updateBan = db.prepareStatement(statement);
 		try {
 			updateBan.execute();
@@ -145,13 +147,14 @@ public class SqlManager {
 	}
 	
 	public void banPlayer(UUID uuid, Ban ban) {
+		if (!db.isConnected()){db.connect();}
 		PreparedStatement banPlayer = db.prepareStatement(insertData);
 		try {
 			banPlayer.setString(1, uuid.toString());
 			banPlayer.setByte(2, ban.getBanLevel().value());
 			banPlayer.setString(3, ban.getPluginName());
 			banPlayer.setString(4, ban.getMessage());
-			String expiry = ban.getExpiration();
+			String expiry = ban.getExpiryString();
 			if (expiry != null){
 				banPlayer.setString(5, expiry);
 			} else {
@@ -165,6 +168,7 @@ public class SqlManager {
 	}
 	
 	public void unbanPlayer(UUID uuid, String pluginname){
+		if (!db.isConnected()){db.connect();}
 		PreparedStatement unbanPlayer = db.prepareStatement(removeData+
 				"'"+uuid.toString()+"' AND "
 				+ "plugin_name='"+pluginname+"';");
@@ -177,6 +181,7 @@ public class SqlManager {
 	}
 
 	public void unbanPlayerAll(UUID uuid) {
+		if (!db.isConnected()){db.connect();}
 		PreparedStatement unbanPlayer = db.prepareStatement(removeData+
 				"'"+uuid.toString()+"';");
 		try {

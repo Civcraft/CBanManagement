@@ -2,6 +2,7 @@ package vg.civcraft.mc.cbanman.listeners;
 
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -40,11 +41,9 @@ public class MercuryMessageListener implements Listener{
 				list.addBan(ban);
 				plugin.getBannedPlayers().put(uuid, list);
 			}
-			for (Player p: plugin.getServer().getOnlinePlayers()){
-				if (p.getUniqueId().equals(uuid)){
-					p.kickPlayer(msg);
-				}
-			}
+			Player p = Bukkit.getPlayer(uuid);
+			if (p != null)
+				p.kickPlayer(msg);
 		} else if (reason.equals("unban")){
 			String pluginname = message[2];
 			CBanList list = plugin.getBannedPlayers().get(uuid);

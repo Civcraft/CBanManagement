@@ -3,8 +3,6 @@ package vg.civcraft.mc.cbanman.ban;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.Bukkit;
-
 public class CBanList {
 	private List<Ban> banlist;
 	
@@ -55,7 +53,6 @@ public class CBanList {
 	public Ban getHighestLevelBan(){
 		Ban ret = null;
 		for (Ban ban : banlist){
-			Bukkit.getLogger().info(ban.getMessage());
 			if (ret == null){
 				ret = ban;
 			} else if (ban.getBanLevel().value() > ret.getBanLevel().value()){
