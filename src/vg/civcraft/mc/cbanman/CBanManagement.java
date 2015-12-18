@@ -276,4 +276,8 @@ public class CBanManagement extends ACivMod {
 		}
 		return ret;
 	}
+	
+	public static CBanManagement getInstance() {
+		return plugin;
+	}
 }
