@@ -74,33 +74,30 @@ public class CBanManagement extends ACivMod {
 		@CivConfig(name = "import_native_bans", def = "false", type = CivConfigType.Bool)
 	})
 	private void importBans() {
-		if (!plugin.GetConfig().get("import_native_bans").getBool()){return;}
-
-		BanList banned = this.getServer().getBanList(Type.NAME);
-		if (banned.getBanEntries().size() == 0){return;}
-		plugin.getLogger().info("Importing "+banned.getBanEntries().size()+" native ban(s)...");
+		if (!plugin.GetConfig().get("import_native_bans").getBool()) {
+			return;
+		}
+		Set<OfflinePlayer> banned = this.getServer().getBannedPlayers();
+		if (banned.size() == 0) {
+			return;
+		}
+		plugin.getLogger().info(
+				"Importing " + banned.size() + " native ban(s)...");
 		int counter = 0;
-		ArrayList<String> async = new ArrayList<String>();
-		Ban newban = new Ban(
-				BanLevel.HIGH.fromInt(plugin.GetConfig().get("adminban.banlevel").getInt()),
-				plugin.GetConfig().get("adminban.pluginname").getString(),
-				plugin.GetConfig().get("adminban.banmessage").getString()				
-				);
-		for (BanEntry ban : banned.getBanEntries()){
-			if (banPlayer(ban.getTarget().toLowerCase(),newban)){
-				banned.pardon(ban.getTarget());
-				counter++;
-			} else {
-				async.add(ban.getTarget().toLowerCase());
-			}
-
+		Ban newban = new Ban(BanLevel.HIGH.fromInt(plugin.GetConfig()
+				.get("adminban.banlevel").getInt()), plugin.GetConfig()
+				.get("adminban.pluginname").getString(), plugin.GetConfig()
+				.get("adminban.banmessage").getString());
+		for (OfflinePlayer ban : banned) {
+			banPlayer(ban.getUniqueId(), newban);
+			plugin.info("Imported native ban for player "+ban.getName()+" with uuid "+ban.getUniqueId());
+			counter++;
 		}
-		plugin.getLogger().info("Imported "+counter+" native Ban(s)!");
-		if (!async.isEmpty()){
-			plugin.getLogger().info("Attempting to AsyncBan "+async.size()+" native bans...");
-			AsyncBan aban = new AsyncBan(plugin, async, newban, plugin.getServer().getConsoleSender());
-			plugin.getServer().getScheduler().runTaskAsynchronously(plugin, aban);
+		BanList bl = this.getServer().getBanList(BanList.Type.NAME);
+		for(BanEntry be : bl.getBanEntries()) {
+			bl.pardon(be.getTarget());
 		}
+		plugin.getLogger().info("Imported " + counter + " native Ban(s)!");
 	}
 
 	@Override
