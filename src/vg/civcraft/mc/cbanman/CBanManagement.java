@@ -3,6 +3,7 @@ package vg.civcraft.mc.cbanman;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.BanEntry;
