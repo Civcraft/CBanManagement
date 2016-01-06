@@ -86,8 +86,11 @@ public class SqlManager {
 		ResultSet set;
 		try {
 			set = playerData.executeQuery();
+			int loadCount = 0;
 			while (set.next()) {
+				loadCount++;
 				UUID uuid = UUID.fromString(set.getString("uuid"));
+				plugin.getLogger().info("Loaded ban for " + uuid);
 				BanLevel banlevel = BanLevel.HIGH.fromByte(set.getByte("ban_flag"));
 				String pluginname = set.getString("plugin_name");
 				String message = set.getString("message");
@@ -113,7 +116,7 @@ public class SqlManager {
 					banlist.addBan(ban);
 				}
 			}
-			plugin.getLogger().info("Loaded from database!");
+			plugin.getLogger().info(loadCount + " Loaded from database!");
 			return true;
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
