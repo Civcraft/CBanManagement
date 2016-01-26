@@ -2,6 +2,9 @@ package vg.civcraft.mc.cbanman.listeners;
 
 import java.util.UUID;
 
+import net.md_5.bungee.api.connection.PendingConnection;
+import net.md_5.bungee.api.event.LoginEvent;
+
 import org.bukkit.BanEntry;
 import org.bukkit.BanList;
 import org.bukkit.BanList.Type;
@@ -12,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent.Result;
 import org.bukkit.event.player.PlayerKickEvent;
+
 import vg.civcraft.mc.cbanman.CBanManagement;
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
@@ -57,5 +61,14 @@ public class PlayerListener implements Listener {
 			plugin.banPlayer(p, newban);
 		}
 	}
+	
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onBungeeLogin(LoginEvent e) {
+		if (CBanManagement.getInstance().isBanned(e.getConnection().getUniqueId())) {
+			e.setCancelled(true);
+			e.setCancelReason("You are banned from Civcraft. Message the moderators at /r/civcraft, if you believe this is a mistake");
+		}
+	}
+	
 	
 }
