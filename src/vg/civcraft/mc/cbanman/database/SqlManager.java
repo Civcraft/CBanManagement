@@ -90,7 +90,7 @@ public class SqlManager {
 			while (set.next()) {
 				loadCount++;
 				UUID uuid = UUID.fromString(set.getString("uuid"));
-				plugin.getLogger().info("Loaded ban for " + uuid);
+				plugin.debug("Loaded ban for " + uuid);
 				BanLevel banlevel = BanLevel.HIGH.fromByte(set.getByte("ban_flag"));
 				String pluginname = set.getString("plugin_name");
 				String message = set.getString("message");
