@@ -161,8 +161,7 @@ public class CBanManagement extends ACivMod {
 			sqlman.banPlayer(uuid, newban);
 		}
 		if (isMercuryEnabled){
-			MercuryAPI.instance.sendMessage("all", 
-					"ban~"+uuid.toString()+"~"+newban.getBanLevel().value()+"~"+newban.getPluginName()+"~"+newban.getMessage(),
+			MercuryAPI.sendGlobalMessage("ban~"+uuid.toString()+"~"+newban.getBanLevel().value()+"~"+newban.getPluginName()+"~"+newban.getMessage(),
 					"banman");
 		}
 		Player p = Bukkit.getPlayer(uuid);
@@ -229,7 +228,7 @@ public class CBanManagement extends ACivMod {
 			}
 			sqlman.unbanPlayer(uuid, pluginname);
 			if (isMercuryEnabled){
-				MercuryAPI.instance.sendMessage("all", "unban~"+uuid.toString()+"~"+pluginname, "banman");
+				MercuryAPI.sendGlobalMessage("unban~"+uuid.toString()+"~"+pluginname, "banman");
 			}
 		}
 	}
@@ -258,7 +257,7 @@ public class CBanManagement extends ACivMod {
 		bannedPlayers.remove(uuid);
 		sqlman.unbanPlayerAll(uuid);
 		if (isMercuryEnabled){
-			MercuryAPI.instance.sendMessage("all", "unban~"+uuid.toString()+"~all", "banman");
+			MercuryAPI.sendGlobalMessage("unban~"+uuid.toString()+"~all", "banman");
 		}
 	}
 
