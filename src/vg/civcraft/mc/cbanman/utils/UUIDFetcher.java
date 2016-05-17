@@ -24,9 +24,10 @@
 package vg.civcraft.mc.cbanman.utils;
 
 import com.google.common.collect.ImmutableList;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -39,7 +40,7 @@ import java.util.concurrent.Callable;
 public class UUIDFetcher implements Callable<Map<String, UUID>> {
     private static final double PROFILES_PER_REQUEST = 100;
     private static final String PROFILE_URL = "https://api.mojang.com/profiles/minecraft";
-    private final JSONParser jsonParser = new JSONParser();
+    private final JsonParser jsonParser = new JsonParser();
     private final List<String> names;
     private final boolean rateLimiting;
 
@@ -55,15 +56,18 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
     public Map<String, UUID> call() throws Exception {
         Map<String, UUID> uuidMap = new HashMap<String, UUID>();
         int requests = (int) Math.ceil(names.size() / PROFILES_PER_REQUEST);
+        
+        Gson gson = new Gson();
         for (int i = 0; i < requests; i++) {
             HttpURLConnection connection = createConnection();
-            String body = JSONArray.toJSONString(names.subList(i * 100, Math.min((i + 1) * 100, names.size())));
+            // String body = JsonArray.toJSONString(names.subList(i * 100, Math.min((i + 1) * 100, names.size())));
+            String body = gson.toJson(names.subList(i * 100, Math.min((i + 1) * 100, names.size())));
             writeBody(connection, body);
-            JSONArray array = (JSONArray) jsonParser.parse(new InputStreamReader(connection.getInputStream()));
+            JsonArray array = jsonParser.parse(new InputStreamReader(connection.getInputStream())).getAsJsonArray();
             for (Object profile : array) {
-                JSONObject jsonProfile = (JSONObject) profile;
-                String id = (String) jsonProfile.get("id");
-                String name = (String) jsonProfile.get("name");
+                JsonObject jsonProfile = (JsonObject) profile;
+                String id = (String) jsonProfile.get("id").getAsString();
+                String name = (String) jsonProfile.get("name").getAsString().toLowerCase();
                 UUID uuid = UUIDFetcher.getUUID(id);
                 uuidMap.put(name, uuid);
             }
@@ -114,6 +118,6 @@ public class UUIDFetcher implements Callable<Map<String, UUID>> {
     }
 
     public static UUID getUUIDOf(String name) throws Exception {
-        return new UUIDFetcher(Arrays.asList(name)).call().get(name);
+        return new UUIDFetcher(Arrays.asList(name)).call().get(name.toLowerCase());
     }
 }

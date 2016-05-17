@@ -1,4 +1,4 @@
-package vg.civcraft.mc.cbanman.database;
+package vg.civcraft.mc.cbanman.bungee;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,28 +10,23 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-
-import vg.civcraft.mc.cbanman.CBanManagement;
+import net.md_5.bungee.config.Configuration;
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
 import vg.civcraft.mc.cbanman.ban.CBanList;
-import vg.civcraft.mc.civmodcore.Config;
-import vg.civcraft.mc.civmodcore.annotations.CivConfig;
-import vg.civcraft.mc.civmodcore.annotations.CivConfigType;
-import vg.civcraft.mc.civmodcore.annotations.CivConfigs;
+import vg.civcraft.mc.cbanman.bungee.Database;
 
 public class SqlManager {
 
-	private CBanManagement plugin;
-	private Config config;
+	private CBanManBungee plugin;
+	private Configuration config;
 	private Database db;
 	
 	private String insertData, updateData, removeData, getAllData;
 	
 
 	
-	public SqlManager(CBanManagement plugin) {
+	public SqlManager(CBanManBungee plugin) {
 		this.plugin = plugin;
 		config = plugin.GetConfig();
 		initializeStrings();
@@ -44,23 +39,16 @@ public class SqlManager {
 		getAllData = "select * from ban_list;";
 	}
 	
-	@CivConfigs({
-		@CivConfig(name = "mysql.username", def = "bukkit", type = CivConfigType.String),
-		@CivConfig(name = "mysql.password", def = "", type = CivConfigType.String),
-		@CivConfig(name = "mysql.host", def = "localhost", type = CivConfigType.String),
-		@CivConfig(name = "mysql.dbname", def = "bukkit", type = CivConfigType.String),
-		@CivConfig(name = "mysql.port", def = "3306", type = CivConfigType.Int)
-	})
 	private boolean loadDB() {
-		String username = config.get("mysql.username").getString();
-		String password = config.get("mysql.password").getString();
-		String host = config.get("mysql.host").getString();
-		String dbname = config.get("mysql.dbname").getString();
-		int port = config.get("mysql.port").getInt();
+		String username = config.getString("mysql.username");
+		String password = config.getString("mysql.password");
+		String host = config.getString("mysql.host");
+		String dbname = config.getString("mysql.dbname");
+		int port = config.getInt("mysql.port");
 		db = new Database(host, port, dbname, username, password, plugin.getLogger());
 		if (!db.connect()) {
 			plugin.getLogger().warning("MySql could not connect, shutting down.");
-			Bukkit.getPluginManager().disablePlugin(plugin);
+			//TODO: disable plugin
 			return false;
 		}
 		createTables();
@@ -90,7 +78,6 @@ public class SqlManager {
 			while (set.next()) {
 				loadCount++;
 				UUID uuid = UUID.fromString(set.getString("uuid"));
-				plugin.debug("Loaded ban for " + uuid);
 				BanLevel banlevel = BanLevel.HIGH.fromByte(set.getByte("ban_flag"));
 				String pluginname = set.getString("plugin_name");
 				String message = set.getString("message");
