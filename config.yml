@@ -1,0 +1,6 @@
+mysql:
+ username: bukkit
+ password: bukkit
+ dbname: bukkit
+ host: localhost
+ port: 3306

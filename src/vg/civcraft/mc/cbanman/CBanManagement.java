@@ -1,6 +1,5 @@
 package vg.civcraft.mc.cbanman;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -9,11 +8,10 @@ import java.util.UUID;
 import org.bukkit.BanEntry;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
-import org.bukkit.BanList.Type;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 
-import vg.civcraft.mc.cbanman.ban.AsyncBan;
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
 import vg.civcraft.mc.cbanman.ban.CBanList;
@@ -33,7 +31,7 @@ public class CBanManagement extends ACivMod {
 	private static CBanManagement plugin;
 	private Map<UUID, CBanList> bannedPlayers;
 	private SqlManager sqlman;
-	private PlayerListener plyr;
+	private static PlayerListener plyr;
 	private CommandHandler cmdHandler;
 	private MercuryMessageListener mercury;
 	private TempBanListener tempListener;
@@ -58,7 +56,7 @@ public class CBanManagement extends ACivMod {
 		if (isMercuryEnabled){
 			mercury = new MercuryMessageListener(plugin);
 			this.getServer().getPluginManager().registerEvents(mercury, plugin);
-			MercuryAPI.instance.registerPluginMessageChannel("banman");
+			MercuryAPI.registerPluginMessageChannel("banman");
 		}
 		importBans();
 		if (plugin.GetConfig().get("tempbans.scan_enabled").getBool()){
@@ -127,9 +125,7 @@ public class CBanManagement extends ACivMod {
 		}
 		return true;
 	}
-
-
-
+	
 	public void banPlayer(Player player, Ban ban){
 		if (player == null){return;}
 		banPlayer(player.getUniqueId(), ban);
@@ -245,7 +241,6 @@ public class CBanManagement extends ACivMod {
 		return true;
 	}
 
-
 	public void unbanPlayerAll(Player p){
 		if (p == null){return;}
 		unbanPlayerAll(p.getUniqueId());
@@ -276,5 +271,15 @@ public class CBanManagement extends ACivMod {
 	
 	public static CBanManagement getInstance() {
 		return plugin;
+	}
+	
+	public void unregisterPlayerListener() {
+		HandlerList.unregisterAll(plyr);
+	}
+	
+	public void disableCommands() {
+		for (String command : getDescription().getCommands().keySet()) {
+			getCommand(command).setExecutor(null);
+		}
 	}
 }

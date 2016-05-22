@@ -1,33 +1,30 @@
-package vg.civcraft.mc.cbanman.listeners;
+package vg.civcraft.mc.cbanman.bungee;
 
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
-
-import vg.civcraft.mc.cbanman.CBanManagement;
+import net.md_5.bungee.api.ProxyServer;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import vg.civcraft.mc.cbanman.ban.Ban;
 import vg.civcraft.mc.cbanman.ban.BanLevel;
 import vg.civcraft.mc.cbanman.ban.CBanList;
-import vg.civcraft.mc.mercury.events.AsyncPluginBroadcastMessageEvent;
+import vg.civcraft.mc.mercury.MercuryAPI;
+import vg.civcraft.mc.mercury.events.EventListener;
 
-public class MercuryMessageListener implements Listener{
-	private CBanManagement plugin;
-	
-	public MercuryMessageListener(CBanManagement plugin) {
+public class MercuryListener implements EventListener {
+	private CBanManBungee plugin;
+
+	public MercuryListener(CBanManBungee plugin) {
 		this.plugin = plugin;
+		MercuryAPI.registerListener(this, "banman");
+		MercuryAPI.registerPluginMessageChannel("banman");
 	}
-	
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onMercuryMessage(AsyncPluginBroadcastMessageEvent event){
-		if (!event.getChannel().equalsIgnoreCase("banman"))
+
+	@Override
+	public void receiveMessage(String origin, String channel, String mess) {
+		if (!channel.equalsIgnoreCase("banman"))
 			return;
-		String[] message = event.getMessage().split("~");
+		String[] message = mess.split("~");
 		String reason = message[0];
 		UUID uuid = UUID.fromString(message[1]);
 		if (reason.equals("ban")){
@@ -43,9 +40,9 @@ public class MercuryMessageListener implements Listener{
 				list.addBan(ban);
 				plugin.getBannedPlayers().put(uuid, list);
 			}
-			Player p = Bukkit.getPlayer(uuid);
+			ProxiedPlayer p = ProxyServer.getInstance().getPlayer(uuid);
 			if (p != null)
-				p.kickPlayer(msg);
+				p.disconnect(new TextComponent(msg));
 		} else if (reason.equals("unban")){
 			String pluginname = message[2];
 			CBanList list = plugin.getBannedPlayers().get(uuid);
@@ -70,10 +67,7 @@ public class MercuryMessageListener implements Listener{
 					}
 				}
 			}
-		} else if (reason.equals("disable")) {
-			plugin.unregisterPlayerListener();
-			plugin.disableCommands();
 		}
 	}
-	
+
 }

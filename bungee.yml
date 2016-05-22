@@ -1,4 +1,5 @@
 name: ${project.name}
 version: ${project.version}
-author: rourke750
-main: vg.civcraft.mc.namelayer.bungee.NameLayerBungee
+author: suirad, rourke750
+main: vg.civcraft.mc.cbanman.bungee.CBanManBungee
+depend: [NameLayer, Mercury] 
