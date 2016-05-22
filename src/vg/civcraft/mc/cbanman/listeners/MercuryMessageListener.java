@@ -29,8 +29,8 @@ public class MercuryMessageListener implements Listener{
 			return;
 		String[] message = event.getMessage().split("~");
 		String reason = message[0];
-		UUID uuid = UUID.fromString(message[1]);
 		if (reason.equals("ban")){
+			UUID uuid = UUID.fromString(message[1]);
 			BanLevel banlevel = BanLevel.LOW.fromByte(Byte.valueOf(message[2]));
 			String pluginname = message[3];
 			String msg = message[4];
@@ -47,6 +47,7 @@ public class MercuryMessageListener implements Listener{
 			if (p != null)
 				p.kickPlayer(msg);
 		} else if (reason.equals("unban")){
+			UUID uuid = UUID.fromString(message[1]);
 			String pluginname = message[2];
 			CBanList list = plugin.getBannedPlayers().get(uuid);
 			if (pluginname.equals("all")){
