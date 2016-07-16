@@ -72,8 +72,12 @@ public class MercuryMessageListener implements Listener{
 				}
 			}
 		} else if (reason.equals("disable")) {
-			plugin.unregisterPlayerListener();
-			plugin.disableCommands();
+			//plugin.unregisterPlayerListener();
+			//plugin.disableCommands();
+			// TODO: Reconsider this. The only listener that should be disabled is the
+			//   join listener. The Kick listener is good; that detects if a ban occurs
+			//   outside of CBan that should be monitored. 
+			//  So, refactor this to not be silly. See issue #21
 		}
 	}
 	
