@@ -7,21 +7,21 @@ softdepend: [Mercury, NameLayer]
 commands:
   ban:
     description: Ban a player or list of players with an admin ban.
-    permission: CBanMan.*
+    permission: CBanMan.admin.ban
     usage: /ban <name> <name> <name>..
   unban:
     description: Clears all bans off of a player or list of players.
     aliases: [uban, pardon]
-    permission: CBanMan.*
+    permission: CBanMan.admin.unban
     usage: /unban <name> <name> <name>..
   checkban:
     description: Checks and returns all bans for a player.
     aliases: [cban, chkban]
-    permission: CBanMan.*
+    permission: CBanMan.admin.checkban
     usage: /checkban <name> [ban#]
   banrecache:
     description: Reloads ban cache from the database.
-    permission: CBanMan.*
+    permission: CBanMan.admin.banrecache
     usage: /banrecache
 permissions:
     CBanMan.*:
