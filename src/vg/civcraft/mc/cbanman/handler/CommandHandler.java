@@ -31,7 +31,6 @@ public class CommandHandler implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command,
 			String label, String[] args) {
-		if (!sender.hasPermission("CBanMan.*")){return false;}
 		switch (label.toLowerCase()){
 			case "ban":
 				return handleBan(sender, args);

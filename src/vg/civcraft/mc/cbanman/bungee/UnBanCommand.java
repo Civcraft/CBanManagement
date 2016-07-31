@@ -11,7 +11,7 @@ import vg.civcraft.mc.namelayer.bungee.NameLayerBungee;
 public final class UnBanCommand extends Command {
 
 	public UnBanCommand() {
-		super("unban");
+		super("unban", "cbanman.bungee.unban");
 	}
 
 	@Override

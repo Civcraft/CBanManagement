@@ -13,7 +13,7 @@ import vg.civcraft.mc.namelayer.bungee.NameLayerBungee;
 public final class BanCommand extends Command {
 
 	public BanCommand() {
-		super("ban");
+		super("ban", "cbanman.bungee.ban");
 	}
 
 	@Override

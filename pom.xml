@@ -5,7 +5,7 @@
 	<groupId>vg.civcraft.mc</groupId>
 	<artifactId>CBanManagement</artifactId>
 	<packaging>jar</packaging>
-	<version>1.4.13</version>
+	<version>1.4.14</version>
 	<name>CBanManagement</name>
 	<url>https://github.com/Civcraft/CBanManagement</url>
 
